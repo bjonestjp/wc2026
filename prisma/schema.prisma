@@ -1,0 +1,211 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+enum MatchStage {
+  GROUP
+  R32
+  R16
+  QF
+  SF
+  THIRD_PLACE
+  FINAL
+}
+
+enum MatchStatus {
+  SCHEDULED
+  FINAL
+}
+
+enum PickSelection {
+  HOME
+  DRAW
+  AWAY
+}
+
+enum KnockoutSlot {
+  HOME
+  AWAY
+}
+
+enum AdvancementType {
+  WINNER
+  LOSER
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  role      UserRole @default(USER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  sessions           Session[]
+  picks              Pick[]
+  userTeams          UserTeam[]
+  score              UserScore?
+  inviteCodesClaimed InviteCode[] @relation("InviteCodeClaimedByUser")
+  scoreEvents        ScoreEvent[]
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  tokenHash String   @unique
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model InviteCode {
+  id              String    @id @default(cuid())
+  tokenHash       String    @unique
+  label           String?
+  expiresAt       DateTime?
+  usedAt          DateTime?
+  claimedByUserId String?
+  createdAt       DateTime  @default(now())
+
+  claimedByUser User? @relation("InviteCodeClaimedByUser", fields: [claimedByUserId], references: [id], onDelete: SetNull)
+
+  @@index([usedAt])
+  @@index([expiresAt])
+  @@index([claimedByUserId])
+}
+
+model ScoringConfig {
+  id                     Int      @id
+  pointsPerCorrect       Int      @default(3)
+  streakBonusStartAt     Int      @default(3)
+  streakBonusPoints      Int      @default(1)
+  missedPickBreaksStreak Boolean  @default(false)
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+}
+
+model Team {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  groupCode String?
+  flagCode  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  homeMatches Match[]    @relation("HomeTeam")
+  awayMatches Match[]    @relation("AwayTeam")
+  userTeams   UserTeam[]
+}
+
+model UserTeam {
+  userId String
+  teamId String
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  @@id([userId, teamId])
+  @@index([teamId])
+}
+
+model Match {
+  id         String      @id @default(cuid())
+  homeTeamId String?
+  awayTeamId String?
+  kickoffAt  DateTime
+  stage      MatchStage
+  groupCode  String?
+  status     MatchStatus @default(SCHEDULED)
+  homeScore  Int?
+  awayScore  Int?
+  homePenalties Int?
+  awayPenalties Int?
+  bracketOrder Int?
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+
+  homeTeam    Team?        @relation("HomeTeam", fields: [homeTeamId], references: [id], onDelete: Restrict)
+  awayTeam    Team?        @relation("AwayTeam", fields: [awayTeamId], references: [id], onDelete: Restrict)
+  picks       Pick[]
+  scoreEvents ScoreEvent[]
+  advancements MatchAdvancement[] @relation("FromMatch")
+  advancedFrom MatchAdvancement[] @relation("ToMatch")
+
+  @@index([kickoffAt])
+  @@index([status])
+  @@index([stage])
+  @@index([bracketOrder])
+}
+
+model MatchAdvancement {
+  id         String          @id @default(cuid())
+  fromMatchId String
+  toMatchId   String
+  toSlot      KnockoutSlot
+  type        AdvancementType
+  createdAt   DateTime        @default(now())
+
+  fromMatch Match @relation("FromMatch", fields: [fromMatchId], references: [id], onDelete: Cascade)
+  toMatch   Match @relation("ToMatch", fields: [toMatchId], references: [id], onDelete: Cascade)
+
+  @@unique([fromMatchId, toMatchId, toSlot, type])
+  @@index([toMatchId])
+  @@index([fromMatchId])
+}
+
+model Pick {
+  id        String        @id @default(cuid())
+  userId    String
+  matchId   String
+  selection PickSelection
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  match Match @relation(fields: [matchId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, matchId])
+  @@index([matchId])
+}
+
+model UserScore {
+  userId        String   @id
+  pointsTotal   Int      @default(0)
+  currentStreak Int      @default(0)
+  maxStreak     Int      @default(0)
+  updatedAt     DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model ScoreEvent {
+  id            String   @id @default(cuid())
+  userId        String
+  matchId       String
+  pointsAwarded Int
+  streakAfter   Int
+  computedAt    DateTime @default(now())
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  match Match @relation(fields: [matchId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, matchId])
+  @@index([matchId])
+}
