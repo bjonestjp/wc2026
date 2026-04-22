@@ -10,6 +10,7 @@ import {
   getTriviaOptions,
   getYesterdayTriviaQuestion,
 } from "@/lib/trivia";
+import { logoutAction } from "@/app/logout/actions";
 
 export const dynamic = "force-dynamic";
 
@@ -150,12 +151,14 @@ export default async function Home() {
                   Admin
                 </Link>
               ) : null}
-              <Link
-                className="rounded-xl border border-black/10 px-3 py-2 text-sm hover:bg-black/[.04] dark:border-white/10 dark:hover:bg-white/10"
-                href="/logout"
-              >
-                Logout
-              </Link>
+              <form action={logoutAction}>
+                <button
+                  type="submit"
+                  className="rounded-xl border border-black/10 px-3 py-2 text-sm hover:bg-black/[.04] dark:border-white/10 dark:hover:bg-white/10"
+                >
+                  Logout
+                </button>
+              </form>
             </>
           ) : (
             <Link
