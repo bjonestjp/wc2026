@@ -53,7 +53,9 @@ export default async function KnockoutsPage() {
         kickoffAtIso: m.kickoffAt.toISOString(),
         status: m.status,
         homeTeamName: m.homeTeam?.name ?? null,
+        homeTeamFlagCode: m.homeTeam?.flagCode ?? null,
         awayTeamName: m.awayTeam?.name ?? null,
+        awayTeamFlagCode: m.awayTeam?.flagCode ?? null,
         homeScore: m.homeScore,
         awayScore: m.awayScore,
         homePenalties: m.homePenalties,
@@ -97,4 +99,3 @@ export default async function KnockoutsPage() {
     </div>
   );
 }
-

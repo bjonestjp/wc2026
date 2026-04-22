@@ -12,11 +12,10 @@ export default async function LoginPage() {
       <div className="w-full max-w-md rounded-2xl border border-black/10 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-zinc-950">
         <div className="mb-6">
           <h1 className="text-2xl font-semibold tracking-tight">
-            Enter your invite code
+            Sign In / Join Pool
           </h1>
           <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-            This pool is invite-only. Your code is single-use to claim your
-            account, then you'll stay signed in.
+            Sign in to your existing account, or join the pool using an invite code.
           </p>
         </div>
 

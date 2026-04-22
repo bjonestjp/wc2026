@@ -8,7 +8,7 @@ export async function createTeamAction(formData: FormData) {
   await requireAdmin();
   const name = String(formData.get("name") ?? "").trim();
   const groupCode = String(formData.get("groupCode") ?? "").trim();
-  const flagCode = String(formData.get("flagCode") ?? "").trim();
+  const flagCode = String(formData.get("flagCode") ?? "").trim().toUpperCase();
   if (!name) return;
 
   await prisma.team.create({
@@ -46,4 +46,3 @@ export async function unassignTeamAction(formData: FormData) {
   });
   revalidatePath("/admin/users");
 }
-

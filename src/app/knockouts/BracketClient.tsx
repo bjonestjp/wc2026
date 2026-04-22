@@ -2,6 +2,7 @@
 
 import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { AdvancementType, KnockoutSlot, MatchStage, MatchStatus } from "@prisma/client";
+import { TeamName } from "@/app/components/TeamName";
 
 type MatchCard = {
   id: string;
@@ -10,7 +11,9 @@ type MatchCard = {
   kickoffAtIso: string;
   status: MatchStatus;
   homeTeamName: string | null;
+  homeTeamFlagCode: string | null;
   awayTeamName: string | null;
+  awayTeamFlagCode: string | null;
   homeScore: number | null;
   awayScore: number | null;
   homePenalties: number | null;
@@ -164,7 +167,7 @@ export function BracketClient(props: Props) {
                       <div className="mt-2 grid gap-1 text-sm">
                         <div className="flex items-center justify-between gap-3">
                           <span className="min-w-0 font-medium">
-                            {m.homeTeamName ?? "TBD"}
+                            <TeamName name={m.homeTeamName} flagCode={m.homeTeamFlagCode} />
                           </span>
                           <span className="tabular-nums text-zinc-700 dark:text-zinc-300">
                             {hasScore ? m.homeScore : "—"}
@@ -172,7 +175,7 @@ export function BracketClient(props: Props) {
                         </div>
                         <div className="flex items-center justify-between gap-3">
                           <span className="min-w-0 font-medium">
-                            {m.awayTeamName ?? "TBD"}
+                            <TeamName name={m.awayTeamName} flagCode={m.awayTeamFlagCode} />
                           </span>
                           <span className="tabular-nums text-zinc-700 dark:text-zinc-300">
                             {hasScore ? m.awayScore : "—"}
@@ -201,4 +204,3 @@ export function BracketClient(props: Props) {
     </div>
   );
 }
-

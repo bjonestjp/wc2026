@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { LocalTime } from "@/app/components/LocalTime";
+import { TeamName } from "@/app/components/TeamName";
 
 export const dynamic = "force-dynamic";
 
@@ -37,7 +38,9 @@ export default async function TeamPage({
     <div className="mx-auto flex w-full max-w-3xl flex-1 flex-col px-4 py-10">
       <div className="flex items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl font-semibold tracking-tight">{team.name}</h1>
+          <h1 className="text-xl font-semibold tracking-tight">
+            <TeamName name={team.name} flagCode={team.flagCode} />
+          </h1>
           <p className="text-sm text-zinc-600 dark:text-zinc-400">
             {team.groupCode ? `Group ${team.groupCode}` : "Team draw"}
           </p>
@@ -95,7 +98,11 @@ export default async function TeamPage({
               <div key={m.id} className="px-5 py-3">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div className="text-sm font-medium">
-                    {(m.homeTeam?.name ?? "TBD")} vs {(m.awayTeam?.name ?? "TBD")}
+                    <span className="inline-flex flex-wrap items-center gap-2">
+                      <TeamName name={m.homeTeam?.name} flagCode={m.homeTeam?.flagCode} />
+                      <span>vs</span>
+                      <TeamName name={m.awayTeam?.name} flagCode={m.awayTeam?.flagCode} />
+                    </span>
                   </div>
                   <div className="text-xs text-zinc-600 dark:text-zinc-400">
                     <LocalTime date={m.kickoffAt.toISOString()} short /> • {m.stage} • {m.status}
@@ -109,4 +116,3 @@ export default async function TeamPage({
     </div>
   );
 }
-

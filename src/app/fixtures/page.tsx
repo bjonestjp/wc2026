@@ -2,6 +2,7 @@ import Link from "next/link";
 import { requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { LocalTime } from "@/app/components/LocalTime";
+import { TeamName } from "@/app/components/TeamName";
 
 export const dynamic = "force-dynamic";
 
@@ -49,7 +50,11 @@ export default async function FixturesPage() {
               <div key={m.id} className="px-5 py-3">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div className="text-sm font-medium">
-                    {(m.homeTeam?.name ?? "TBD")} vs {(m.awayTeam?.name ?? "TBD")}
+                    <span className="inline-flex flex-wrap items-center gap-2">
+                      <TeamName name={m.homeTeam?.name} flagCode={m.homeTeam?.flagCode} />
+                      <span>vs</span>
+                      <TeamName name={m.awayTeam?.name} flagCode={m.awayTeam?.flagCode} />
+                    </span>
                   </div>
                   <div className="text-xs text-zinc-600 dark:text-zinc-400">
                     <LocalTime date={m.kickoffAt.toISOString()} short /> • {m.stage}
@@ -63,4 +68,3 @@ export default async function FixturesPage() {
     </div>
   );
 }
-

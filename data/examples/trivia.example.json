@@ -1,0 +1,18 @@
+[
+  {
+    "prompt": "Which country won the 2010 FIFA World Cup?",
+    "optionA": "Spain",
+    "optionB": "Netherlands",
+    "optionC": "Germany",
+    "optionD": "Brazil",
+    "correctOption": 1
+  },
+  {
+    "prompt": "Which nation hosted the 2022 FIFA World Cup?",
+    "optionA": "United States",
+    "optionB": "Qatar",
+    "optionC": "Russia",
+    "optionD": "Brazil",
+    "correctOption": 2
+  }
+]

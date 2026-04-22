@@ -1,7 +1,15 @@
 import { getCurrentUser } from "@/lib/auth";
+import { TeamName } from "@/app/components/TeamName";
+import { TriviaCard } from "@/app/components/TriviaCard";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import { MatchStage, MatchStatus, UserRole } from "@prisma/client";
+import {
+  getTodayTriviaQuestion,
+  getTriviaLeaderboardRows,
+  getTriviaOptions,
+  getYesterdayTriviaQuestion,
+} from "@/lib/trivia";
 
 export const dynamic = "force-dynamic";
 
@@ -38,7 +46,7 @@ function winnerLoserTeamId(match: {
 
 export default async function Home() {
   const user = await getCurrentUser();
-  const [teams, userScore, leaderboard] = user
+  const [teams, userScore, leaderboard, todayTriviaQuestion, yesterdayTriviaQuestion, triviaLeaderboard] = user
     ? await Promise.all([
         prisma.userTeam.findMany({
           where: { userId: user.id },
@@ -54,8 +62,11 @@ export default async function Home() {
           select: { userId: true },
           take: 500,
         }),
+        getTodayTriviaQuestion(),
+        getYesterdayTriviaQuestion(),
+        getTriviaLeaderboardRows(),
       ])
-    : [[], null, []];
+    : [[], null, [], null, null, []];
 
   const pointsTotal = userScore?.pointsTotal ?? 0;
   const leaderboardPosition = user
@@ -64,6 +75,30 @@ export default async function Home() {
         leaderboard.findIndex((r) => r.userId === user.id) + 1,
       )
     : null;
+  const triviaRow = user
+    ? triviaLeaderboard.find((row) => row.userId === user.id) ?? null
+    : null;
+  const triviaLeaderboardPosition = user
+    ? Math.max(
+        1,
+        triviaLeaderboard.findIndex((row) => row.userId === user.id) + 1,
+      )
+    : null;
+  const todayTriviaAnswer =
+    user && todayTriviaQuestion
+      ? await prisma.triviaAnswer.findUnique({
+          where: {
+            userId_questionId: {
+              userId: user.id,
+              questionId: todayTriviaQuestion.id,
+            },
+          },
+          select: {
+            selectedOption: true,
+            isCorrect: true,
+          },
+        })
+      : null;
 
   const teamIds = teams.map((t) => t.teamId);
   const knockoutResults = user && teamIds.length
@@ -189,7 +224,9 @@ export default async function Home() {
                           href={`/teams/${ut.teamId}`}
                           className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-black/[.02] px-3 py-1 text-sm hover:bg-black/[.04] dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10"
                         >
-                          <span className="font-medium">{ut.team.name}</span>
+                          <span className="font-medium">
+                            <TeamName name={ut.team.name} flagCode={ut.team.flagCode} />
+                          </span>
                           {ut.team.groupCode ? (
                             <span className="text-zinc-500 dark:text-zinc-400">
                               Group {ut.team.groupCode}
@@ -272,6 +309,34 @@ export default async function Home() {
                 </div>
               </Link>
             </div>
+
+            {todayTriviaQuestion ? (
+              <TriviaCard
+                questionId={todayTriviaQuestion.id}
+                prompt={todayTriviaQuestion.prompt}
+                options={getTriviaOptions(todayTriviaQuestion)}
+                initialState={
+                  todayTriviaAnswer
+                    ? {
+                        ok: true,
+                        selectedOption: todayTriviaAnswer.selectedOption,
+                        isCorrect: todayTriviaAnswer.isCorrect,
+                        correctOption: todayTriviaQuestion.correctOption,
+                      }
+                    : null
+                }
+                triviaPoints={triviaRow?.pointsTotal ?? 0}
+                triviaPosition={triviaLeaderboardPosition}
+                hasYesterdayBreakdown={Boolean(yesterdayTriviaQuestion)}
+              />
+            ) : (
+              <div className="mt-6 rounded-2xl border border-black/10 bg-white p-5 dark:border-white/10 dark:bg-zinc-950">
+                <div className="text-sm font-medium">Daily trivia</div>
+                <div className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
+                  No trivia question is queued for today yet.
+                </div>
+              </div>
+            )}
           </>
         ) : (
           <div className="rounded-2xl border border-black/10 bg-white p-5 dark:border-white/10 dark:bg-zinc-950">

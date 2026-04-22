@@ -1,0 +1,259 @@
+[
+  {
+    "prompt": "Which country won the 2022 FIFA World Cup?",
+    "optionA": "Argentina",
+    "optionB": "England",
+    "optionC": "France",
+    "optionD": "Brazil",
+    "correctOption": 1
+  },
+  {
+    "prompt": "Which country won the 2018 FIFA World Cup?",
+    "optionA": "Spain",
+    "optionB": "Germany",
+    "optionC": "France",
+    "optionD": "Brazil",
+    "correctOption": 3
+  },
+  {
+    "prompt": "Which country won the 2014 FIFA World Cup?",
+    "optionA": "Spain",
+    "optionB": "Argentina",
+    "optionC": "Germany",
+    "optionD": "Brazil",
+    "correctOption": 3
+  },
+  {
+    "prompt": "Which country won the 2010 FIFA World Cup?",
+    "optionA": "England",
+    "optionB": "Spain",
+    "optionC": "Brazil",
+    "optionD": "Germany",
+    "correctOption": 2
+  },
+  {
+    "prompt": "Which country won the 2006 FIFA World Cup?",
+    "optionA": "Italy",
+    "optionB": "Spain",
+    "optionC": "England",
+    "optionD": "Brazil",
+    "correctOption": 1
+  },
+  {
+    "prompt": "Which country won the 2002 FIFA World Cup?",
+    "optionA": "Spain",
+    "optionB": "Netherlands",
+    "optionC": "Germany",
+    "optionD": "Brazil",
+    "correctOption": 4
+  },
+  {
+    "prompt": "Which country won the 1998 FIFA World Cup?",
+    "optionA": "Uruguay",
+    "optionB": "Spain",
+    "optionC": "France",
+    "optionD": "Portugal",
+    "correctOption": 3
+  },
+  {
+    "prompt": "Which country won the 1994 FIFA World Cup?",
+    "optionA": "Cameroon",
+    "optionB": "Netherlands",
+    "optionC": "Germany",
+    "optionD": "Brazil",
+    "correctOption": 4
+  },
+  {
+    "prompt": "Which country won the 1990 FIFA World Cup?",
+    "optionA": "West Germany",
+    "optionB": "East Germany",
+    "optionC": "Siam",
+    "optionD": "U.S.S.R.",
+    "correctOption": 1
+  },
+  {
+    "prompt": "Which country won the 1986 FIFA World Cup?",
+    "optionA": "Spain",
+    "optionB": "Argentina",
+    "optionC": "Germany",
+    "optionD": "Brazil",
+    "correctOption": 2
+  },
+  {
+    "prompt": "Which country won the 1982 FIFA World Cup?",
+    "optionA": "Spain",
+    "optionB": "Brazil",
+    "optionC": "France",
+    "optionD": "Italy",
+    "correctOption": 4
+  },
+  {
+    "prompt": "Which country won the 1978 FIFA World Cup?",
+    "optionA": "Portugal",
+    "optionB": "Argentina",
+    "optionC": "Germany",
+    "optionD": "Spain",
+    "correctOption": 2
+  },
+  {
+    "prompt": "Which country won the 1974 FIFA World Cup?",
+    "optionA": "Spain",
+    "optionB": "West Germany",
+    "optionC": "Italy",
+    "optionD": "Brazil",
+    "correctOption": 2
+  },
+  {
+    "prompt": "Which country won the 1970 FIFA World Cup?",
+    "optionA": "Spain",
+    "optionB": "Netherlands",
+    "optionC": "Germany",
+    "optionD": "Brazil",
+    "correctOption": 4
+  },
+  {
+    "prompt": "Which country won the 1966 FIFA World Cup?",
+    "optionA": "England",
+    "optionB": "Scotland",
+    "optionC": "Wales",
+    "optionD": "Ireland",
+    "correctOption": 1
+  },
+  {
+    "prompt": "Which country won the 1962 FIFA World Cup?",
+    "optionA": "Spain",
+    "optionB": "Netherlands",
+    "optionC": "West Germany",
+    "optionD": "Brazil",
+    "correctOption": 4
+  },
+  {
+    "prompt": "Which country won the 1958 FIFA World Cup?",
+    "optionA": "Spain",
+    "optionB": "Netherlands",
+    "optionC": "Brazil",
+    "optionD": "Italy",
+    "correctOption": 3
+  },
+  {
+    "prompt": "Which country won the 1954 FIFA World Cup?",
+    "optionA": "Cameroon",
+    "optionB": "Netherlands",
+    "optionC": "West Germany",
+    "optionD": "England",
+    "correctOption": 3
+  },
+  {
+    "prompt": "Which country won the 1950 FIFA World Cup?",
+    "optionA": "France",
+    "optionB": "Italy",
+    "optionC": "Germany",
+    "optionD": "Uruguay",
+    "correctOption": 4
+  },
+  {
+    "prompt": "Which country won the 1938 FIFA World Cup?",
+    "optionA": "Italy",
+    "optionB": "Netherlands",
+    "optionC": "France",
+    "optionD": "Brazil",
+    "correctOption": 1
+  },
+  {
+    "prompt": "Which country won the 1934 FIFA World Cup?",
+    "optionA": "Spain",
+    "optionB": "Netherlands",
+    "optionC": "West Germany",
+    "optionD": "Italy",
+    "correctOption": 4
+  },
+  {
+    "prompt": "Which country won the 1930 FIFA World Cup?",
+    "optionA": "Uruguay",
+    "optionB": "Netherlands",
+    "optionC": "France",
+    "optionD": "Italy",
+    "correctOption": 1
+  },
+  {
+    "prompt": "Which country hosted the 1986 FIFA World Cup?",
+    "optionA": "Mexico",
+    "optionB": "Netherlands",
+    "optionC": "Germany",
+    "optionD": "Brazil",
+    "correctOption": 1
+  },
+  {
+    "prompt": "Which country hosted the 1990 FIFA World Cup?",
+    "optionA": "Spain",
+    "optionB": "Portugal",
+    "optionC": "Italy",
+    "optionD": "England",
+    "correctOption": 3
+  },
+  {
+    "prompt": "Which country hosted the 1994 FIFA World Cup?",
+    "optionA": "Croatia",
+    "optionB": "USA",
+    "optionC": "Spain",
+    "optionD": "Canada",
+    "correctOption": 2
+  },
+  {
+    "prompt": "Which country hosted the 1998 FIFA World Cup?",
+    "optionA": "Spain",
+    "optionB": "Switzerland",
+    "optionC": "Austria",
+    "optionD": "France",
+    "correctOption": 4
+  },
+  {
+    "prompt": "Which countries hosted the 2002 FIFA World Cup?",
+    "optionA": "South Korea & Japan",
+    "optionB": "Sweden & Norway",
+    "optionC": "Ireland & Scotland",
+    "optionD": "France & Italy",
+    "correctOption": 1
+  },
+  {
+    "prompt": "Which country hosted the 2006 FIFA World Cup?",
+    "optionA": "Portugal",
+    "optionB": "Austria",
+    "optionC": "Belgium",
+    "optionD": "Germany",
+    "correctOption": 4
+  },
+  {
+    "prompt": "Which country hosted the 2010 FIFA World Cup?",
+    "optionA": "Uganda",
+    "optionB": "South Africa",
+    "optionC": "Kenya",
+    "optionD": "Senegal",
+    "correctOption": 2
+  },
+  {
+    "prompt": "Which country hosted the 2014 FIFA World Cup?",
+    "optionA": "Spain",
+    "optionB": "Netherlands",
+    "optionC": "Germany",
+    "optionD": "Brazil",
+    "correctOption": 4
+  },
+  {
+    "prompt": "Which country hosted the 2018 FIFA World Cup?",
+    "optionA": "Russia",
+    "optionB": "Qatar",
+    "optionC": "Saudi Arabia",
+    "optionD": "Italy",
+    "correctOption": 1
+  },
+
+  {
+    "prompt": "Which nation hosted the 2022 FIFA World Cup?",
+    "optionA": "United States",
+    "optionB": "Qatar",
+    "optionC": "Russia",
+    "optionD": "Brazil",
+    "correctOption": 2
+  }
+]

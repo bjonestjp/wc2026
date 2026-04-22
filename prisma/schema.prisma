@@ -48,16 +48,18 @@ enum AdvancementType {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  name      String
-  role      UserRole @default(USER)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id           String   @id @default(cuid())
+  name         String   @unique
+  passwordHash String?
+  role         UserRole @default(USER)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   sessions           Session[]
   picks              Pick[]
   userTeams          UserTeam[]
   score              UserScore?
+  triviaAnswers      TriviaAnswer[]
   inviteCodesClaimed InviteCode[] @relation("InviteCodeClaimedByUser")
   scoreEvents        ScoreEvent[]
 }
@@ -99,6 +101,13 @@ model ScoringConfig {
   missedPickBreaksStreak Boolean  @default(false)
   createdAt              DateTime @default(now())
   updatedAt              DateTime @updatedAt
+}
+
+model AppConfig {
+  id              Int      @id
+  activeTriviaSet String   @default("REAL")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 }
 
 model Team {
@@ -208,4 +217,40 @@ model ScoreEvent {
 
   @@unique([userId, matchId])
   @@index([matchId])
+}
+
+model TriviaQuestion {
+  id            String         @id @default(cuid())
+  triviaSet     String
+  prompt        String
+  optionA       String
+  optionB       String
+  optionC       String
+  optionD       String
+  correctOption Int
+  publishOn     String         @unique
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  answers TriviaAnswer[]
+
+  @@unique([triviaSet, publishOn])
+  @@index([triviaSet, publishOn])
+}
+
+model TriviaAnswer {
+  id             String         @id @default(cuid())
+  userId         String
+  questionId     String
+  selectedOption Int
+  isCorrect      Boolean
+  pointsAwarded  Int            @default(0)
+  createdAt      DateTime       @default(now())
+
+  user     User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  question TriviaQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, questionId])
+  @@index([questionId])
+  @@index([userId])
 }

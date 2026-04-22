@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { PickSelection } from "@prisma/client";
 import { LocalTime } from "@/app/components/LocalTime";
 import { PickButtons } from "./PickButtons";
+import { TeamName } from "@/app/components/TeamName";
 
 export const dynamic = "force-dynamic";
 
@@ -67,7 +68,11 @@ export default async function TodayFixturesPage() {
               >
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div className="text-sm font-medium">
-                    {(m.homeTeam?.name ?? "TBD")} vs {(m.awayTeam?.name ?? "TBD")}
+                    <span className="inline-flex flex-wrap items-center gap-2">
+                      <TeamName name={m.homeTeam?.name} flagCode={m.homeTeam?.flagCode} />
+                      <span>vs</span>
+                      <TeamName name={m.awayTeam?.name} flagCode={m.awayTeam?.flagCode} />
+                    </span>
                   </div>
                   <div className="text-xs text-zinc-600 dark:text-zinc-400">
                     <LocalTime date={m.kickoffAt.toISOString()} short />
@@ -78,9 +83,25 @@ export default async function TodayFixturesPage() {
                 <PickButtons
                   matchId={m.id}
                   options={[
-                    { label: m.homeTeam?.name ?? "Home", value: PickSelection.HOME },
+                    {
+                      label: (
+                        <TeamName
+                          name={m.homeTeam?.name ?? "Home"}
+                          flagCode={m.homeTeam?.flagCode}
+                        />
+                      ),
+                      value: PickSelection.HOME,
+                    },
                     { label: "Draw", value: PickSelection.DRAW },
-                    { label: m.awayTeam?.name ?? "Away", value: PickSelection.AWAY },
+                    {
+                      label: (
+                        <TeamName
+                          name={m.awayTeam?.name ?? "Away"}
+                          flagCode={m.awayTeam?.flagCode}
+                        />
+                      ),
+                      value: PickSelection.AWAY,
+                    },
                   ]}
                   existingPick={existingPick}
                   locked={locked}

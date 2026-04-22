@@ -6,6 +6,7 @@ import { randomBytes } from "node:crypto";
 import { prisma } from "@/lib/prisma";
 import { UserRole } from "@prisma/client";
 import { sha256Hex } from "@/lib/tokens";
+import { hashPassword, verifyPassword } from "./passwords";
 
 const SESSION_COOKIE_NAME = "wc_session";
 const SESSION_TTL_DAYS = 30;
@@ -40,12 +41,16 @@ export async function requireAdmin() {
 export async function loginWithInviteCode(params: {
   code: string;
   name: string;
+  password?: string;
 }) {
   const codeTrimmed = params.code.trim();
   const nameTrimmed = params.name.trim();
 
   if (!codeTrimmed) throw new Error("Invite code is required");
   if (!nameTrimmed) throw new Error("Name is required");
+  if (!params.password) throw new Error("Password is required for new accounts");
+
+  const pwdHash = await hashPassword(params.password);
 
   const tokenHash = sha256Hex(codeTrimmed);
 
@@ -67,7 +72,7 @@ export async function loginWithInviteCode(params: {
       throw new Error("Code expired");
 
     const user = await tx.user.create({
-      data: { name: nameTrimmed },
+      data: { name: nameTrimmed, passwordHash: pwdHash },
     });
     await tx.userScore.create({ data: { userId: user.id } });
 
@@ -100,6 +105,48 @@ export async function loginWithInviteCode(params: {
   });
 
   return { userId: result.user.id };
+}
+
+export async function loginWithPassword(params: {
+  name: string;
+  password?: string;
+}) {
+  const nameTrimmed = params.name.trim();
+  if (!nameTrimmed) throw new Error("Name is required");
+  if (!params.password) throw new Error("Password is required");
+
+  const user = await prisma.user.findUnique({
+    where: { name: nameTrimmed },
+  });
+
+  if (!user || !user.passwordHash) {
+    throw new Error("Invalid username or password");
+  }
+
+  const isValid = await verifyPassword(params.password, user.passwordHash);
+  if (!isValid) {
+    throw new Error("Invalid username or password");
+  }
+
+  const sessionToken = randomBytes(32).toString("hex");
+  const session = await prisma.session.create({
+    data: {
+      tokenHash: sha256Hex(sessionToken),
+      userId: user.id,
+      expiresAt: new Date(Date.now() + SESSION_TTL_DAYS * 24 * 60 * 60 * 1000),
+    },
+  });
+
+  const cookieStore = await cookies();
+  cookieStore.set(SESSION_COOKIE_NAME, sessionToken, {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    maxAge: SESSION_TTL_DAYS * 24 * 60 * 60,
+  });
+
+  return { userId: user.id };
 }
 
 export async function logout() {

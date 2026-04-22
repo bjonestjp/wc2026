@@ -2,12 +2,14 @@ import Link from "next/link";
 import { requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { MatchStage, MatchStatus } from "@prisma/client";
+import { TeamName } from "@/app/components/TeamName";
 
 export const dynamic = "force-dynamic";
 
 type Row = {
   teamId: string;
   teamName: string;
+  flagCode: string | null;
   played: number;
   won: number;
   drawn: number;
@@ -20,13 +22,14 @@ type Row = {
 
 function ensureRow(
   map: Map<string, Row>,
-  team: { id: string; name: string },
+  team: { id: string; name: string; flagCode: string | null },
 ): Row {
   const existing = map.get(team.id);
   if (existing) return existing;
   const created: Row = {
     teamId: team.id,
     teamName: team.name,
+    flagCode: team.flagCode,
     played: 0,
     won: 0,
     drawn: 0,
@@ -58,7 +61,7 @@ export default async function GroupsPage() {
     prisma.team.findMany({
       where: { groupCode: { not: null } },
       orderBy: [{ groupCode: "asc" }, { name: "asc" }],
-      select: { id: true, name: true, groupCode: true },
+      select: { id: true, name: true, groupCode: true, flagCode: true },
     }),
     prisma.match.findMany({
       where: { stage: MatchStage.GROUP, status: MatchStatus.FINAL },
@@ -75,7 +78,7 @@ export default async function GroupsPage() {
     if (!g) continue;
     const rowMap = groupToRows.get(g) ?? new Map<string, Row>();
     groupToRows.set(g, rowMap);
-    ensureRow(rowMap, { id: t.id, name: t.name });
+    ensureRow(rowMap, { id: t.id, name: t.name, flagCode: t.flagCode });
   }
 
   for (const m of matches) {
@@ -89,8 +92,16 @@ export default async function GroupsPage() {
     groupToRows.set(g, rowMap);
 
     if (!m.homeTeamId || !m.awayTeamId || !m.homeTeam || !m.awayTeam) continue;
-    const home = ensureRow(rowMap, { id: m.homeTeamId, name: m.homeTeam.name });
-    const away = ensureRow(rowMap, { id: m.awayTeamId, name: m.awayTeam.name });
+    const home = ensureRow(rowMap, {
+      id: m.homeTeamId,
+      name: m.homeTeam.name,
+      flagCode: m.homeTeam.flagCode,
+    });
+    const away = ensureRow(rowMap, {
+      id: m.awayTeamId,
+      name: m.awayTeam.name,
+      flagCode: m.awayTeam.flagCode,
+    });
 
     home.played += 1;
     away.played += 1;
@@ -175,7 +186,9 @@ export default async function GroupsPage() {
                     key={r.teamId}
                     className="grid grid-cols-[1fr_36px_36px_36px_36px_44px_44px_44px_44px] gap-2 px-5 py-3 text-sm"
                   >
-                    <div className="min-w-0 font-medium">{r.teamName}</div>
+                    <div className="min-w-0 font-medium">
+                      <TeamName name={r.teamName} flagCode={r.flagCode} />
+                    </div>
                     <div className="text-right tabular-nums">{r.played}</div>
                     <div className="text-right tabular-nums">{r.won}</div>
                     <div className="text-right tabular-nums">{r.drawn}</div>
@@ -202,4 +215,3 @@ export default async function GroupsPage() {
     </div>
   );
 }
-

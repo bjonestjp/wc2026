@@ -1,0 +1,23 @@
+[
+  {
+    "stage": "GROUP",
+    "groupCode": "A",
+    "homeTeamName": "England",
+    "awayTeamName": "France",
+    "kickoffAt": "2026-06-11T19:00:00.000Z"
+  },
+  {
+    "stage": "GROUP",
+    "groupCode": "A",
+    "homeTeamName": "Germany",
+    "awayTeamName": "Spain",
+    "kickoffAt": "2026-06-11T22:00:00.000Z"
+  },
+  {
+    "stage": "R16",
+    "bracketOrder": 1,
+    "homeTeamName": null,
+    "awayTeamName": null,
+    "kickoffAt": "2026-07-01T19:00:00.000Z"
+  }
+]

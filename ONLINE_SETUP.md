@@ -1,26 +1,26 @@
 # Online Test Instance Setup
 
-Deploy a publicly accessible test instance using **Vercel** (hosting) + **Neon** (hosted Postgres). Both have free tiers that are more than enough for testing.
+Deploy a publicly accessible test instance using **Vercel Hobby** for hosting and a free hosted Postgres database from **Neon** or **Supabase**. This is the cleanest way to test from multiple devices without depending on your laptop staying online.
 
 ---
 
-## Step 1 — Set up the database (Neon)
+## Step 1 — Create a free hosted Postgres database
 
-1. Go to [neon.tech](https://neon.tech) and create a free account.
-2. Create a new project (e.g. `wc2026-test`).
-3. It will give you a connection string like:
+1. Create a free account with either [Neon](https://neon.tech) or [Supabase](https://supabase.com).
+2. Create a new project, for example `wc2026-test`.
+3. Copy the Postgres connection string. It should look roughly like:
 
+```text
+postgresql://user:pass@host:5432/dbname?sslmode=require
 ```
-postgresql://user:pass@ep-xyz-123.eu-west-1.aws.neon.tech/neondb?sslmode=require
-```
 
-4. Copy that connection string — you'll need it in the next step.
+You will use that same connection string both in Vercel and in a local bootstrap command.
 
 ---
 
-## Step 2 — Push to GitHub
+## Step 2 — Push the repo to GitHub
 
-If your project isn't already on GitHub:
+If the project is not already on GitHub:
 
 ```bash
 git remote add origin https://github.com/YOUR_USERNAME/wc2026-pool.git
@@ -29,67 +29,88 @@ git push -u origin main
 
 ---
 
-## Step 3 — Deploy to Vercel
+## Step 3 — Deploy to Vercel Hobby
 
 1. Go to [vercel.com](https://vercel.com) and sign in with GitHub.
-2. Click **"Add New Project"** → import your repo.
-3. In the **Environment Variables** section, add:
+2. Click **Add New Project** and import this repo.
+3. In **Environment Variables**, add:
 
-| Name           | Value                                      |
-| -------------- | ------------------------------------------ |
-| `DATABASE_URL` | *(paste the Neon connection string from Step 1)* |
+| Name           | Value                                  |
+| -------------- | -------------------------------------- |
+| `DATABASE_URL` | your hosted Postgres connection string |
 
-4. Click **Deploy** — Vercel auto-detects Next.js and builds it.
+4. Click **Deploy**.
+
+Vercel will detect Next.js automatically.
 
 ---
 
-## Step 4 — Run migrations on the hosted database
+## Step 4 — Bootstrap the hosted database for the current test
 
-After the first deploy, you need to create the tables in Neon. From your local machine, run these commands with your Neon connection string:
+From your local machine, run these commands against the hosted database:
 
 ```bash
-# Run migrations against the remote database
-DATABASE_URL="postgresql://user:pass@ep-xyz-123.neon.tech/neondb?sslmode=require" npx prisma migrate deploy
-
-# Seed the database (creates admin user + prints a one-time invite code)
-DATABASE_URL="postgresql://user:pass@ep-xyz-123.neon.tech/neondb?sslmode=require" npx prisma db seed
+DATABASE_URL="postgresql://user:pass@host/dbname?sslmode=require" npx prisma migrate deploy
+DATABASE_URL="postgresql://user:pass@host/dbname?sslmode=require" npm run bootstrap:remote-test
 ```
 
-Copy the dev invite code that gets printed to the terminal.
+`bootstrap:remote-test` will:
+- create or refresh the admin login
+- create a regular test user
+- clear old tournament state
+- load the current `test_1` fixture scaffold on the compressed schedule
+- load the `TEST` trivia set
+- print an invite code for signup testing
+
+Default credentials created by the bootstrap:
+- `Admin` / `admin12345`
+- `Test User` / `user12345`
+
+Optional overrides:
+
+```bash
+DATABASE_URL="postgresql://user:pass@host/dbname?sslmode=require" npm run bootstrap:remote-test -- \
+  --start 2026-04-25T13:00:00Z \
+  --interval-minutes 5 \
+  --stage-gap-minutes 30 \
+  --fixtures data/test_1/real-fixtures.scaffold.json \
+  --trivia data/test_1/trivia.example.json \
+  --trivia-start-on 2026-04-25
+```
 
 ---
 
-## Step 5 — First login
+## Step 5 — Sign in and check the test data
 
-1. Vercel gives you a URL like `https://wc2026-pool.vercel.app`.
-2. Go to `https://your-app.vercel.app/login`.
-3. Enter the dev invite code from Step 4 + a display name.
-4. To make yourself an admin, you can either:
-   - Connect to the Neon database via Prisma Studio and change your user's `role` to `ADMIN`:
-     ```bash
-     DATABASE_URL="postgresql://user:pass@ep-xyz-123.neon.tech/neondb?sslmode=require" npx prisma studio
-     ```
-   - Or use the Neon SQL Editor in their web dashboard.
+1. Open the Vercel deployment URL.
+2. Go to `/login`.
+3. Sign in as `Admin`.
+4. Check:
+   - `/admin`
+   - `/admin/users`
+   - `/fixtures`
+   - `/leaderboard`
+   - the home page trivia card
 
----
-
-## Step 6 — Share with testers
-
-Share the Vercel URL with anyone you want to test with. They can access it from any device on any network — phone, laptop, etc.
-
-Create invite codes for each tester via `/admin/invites` once you're logged in as admin.
+If you want more test accounts, create invite codes from `/admin/invites`.
 
 ---
 
 ## Notes
 
-- **Vercel free tier**: 100GB bandwidth, serverless functions — plenty for testing.
-- **Neon free tier**: 0.5GB storage + 190 compute hours/month — plenty for a pool.
-- Every `git push` to `main` **auto-deploys** to Vercel.
-- You can add a **custom domain** later in Vercel project settings.
-- To redeploy after code changes, just push to GitHub:
-  ```bash
-  git add .
-  git commit -m "your changes"
-  git push
-  ```
+- **Vercel Hobby** is free and fine for a lightweight test pool.
+- **Neon** and **Supabase** both offer free hosted Postgres tiers suitable for testing.
+- Every push to the connected GitHub branch auto-deploys to Vercel.
+- If you want to rerun the same hosted test later, rerun `prisma migrate deploy` and `npm run bootstrap:remote-test` against the same hosted database.
+
+---
+
+## Alternative: Fast temporary share link
+
+If you ever want a zero-setup temporary test instead, you can tunnel the local app:
+
+```bash
+npx --yes cloudflared tunnel --url http://localhost:3000
+```
+
+That gives you a temporary public URL for the current local instance, but it stops working when the tunnel process stops.

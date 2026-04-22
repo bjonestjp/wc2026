@@ -1,0 +1,42 @@
+[
+  {
+    "prompt": "Which nation won the 1998 FIFA World Cup?",
+    "optionA": "Brazil",
+    "optionB": "France",
+    "optionC": "Italy",
+    "optionD": "Germany",
+    "correctOption": 2
+  },
+  {
+    "prompt": "Who hosted the 2014 FIFA World Cup?",
+    "optionA": "South Africa",
+    "optionB": "Russia",
+    "optionC": "Brazil",
+    "optionD": "Germany",
+    "correctOption": 3
+  },
+  {
+    "prompt": "Which country beat England in the semi-final of the 2018 World Cup?",
+    "optionA": "Croatia",
+    "optionB": "France",
+    "optionC": "Belgium",
+    "optionD": "Argentina",
+    "correctOption": 1
+  },
+  {
+    "prompt": "Which country hosted the 2022 FIFA World Cup?",
+    "optionA": "Qatar",
+    "optionB": "United States",
+    "optionC": "Morocco",
+    "optionD": "Russia",
+    "correctOption": 1
+  },
+  {
+    "prompt": "How many points does a team earn for a win in the group stage?",
+    "optionA": "1",
+    "optionB": "2",
+    "optionC": "3",
+    "optionD": "4",
+    "correctOption": 3
+  }
+]

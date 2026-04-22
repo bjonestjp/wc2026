@@ -1,11 +1,12 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { useActionState } from "react";
 import { submitPickAction, type PickState } from "./actions";
 
 type Props = {
   matchId: string;
-  options: Array<{ label: string; value: string }>;
+  options: Array<{ label: ReactNode; value: string }>;
   existingPick: string | null;
   locked: boolean;
   hasTeams: boolean;

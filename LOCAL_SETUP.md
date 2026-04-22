@@ -47,6 +47,20 @@ npx prisma db seed
 
 This creates an Admin user and prints a **one-time dev invite code** to the terminal (looks like `DEV-a1b2c3d4e5f6g7h8`). Copy it — you'll need it to log in.
 
+### 5b. Bootstrap browser test accounts
+
+If you want to test the app in the browser as both an admin and a regular user, run:
+
+```bash
+npm run bootstrap:local-browser-test
+```
+
+This creates or refreshes:
+
+- Admin login: `Admin` / `admin12345`
+- Regular user login: `Test User` / `user12345`
+- A fresh one-time invite code for testing the signup flow
+
 ### 6. Start the dev server
 
 ```bash

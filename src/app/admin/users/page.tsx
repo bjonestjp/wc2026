@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { assignTeamAction, createTeamAction, unassignTeamAction } from "./actions";
+import { TeamName } from "@/app/components/TeamName";
 
 export const dynamic = "force-dynamic";
 
@@ -50,7 +51,7 @@ export default async function AdminUsersPage() {
           />
           <input
             name="flagCode"
-            placeholder="Flag code (optional)"
+            placeholder="Flag code, e.g. EN (optional)"
             className="h-11 rounded-xl border border-black/10 bg-transparent px-3 text-sm outline-none focus:border-black/30 dark:border-white/10 dark:focus:border-white/25"
           />
           <button className="h-11 rounded-xl bg-black px-4 text-sm font-medium text-white hover:bg-black/90 dark:bg-white dark:text-black dark:hover:bg-white/90 sm:col-span-3">
@@ -59,6 +60,9 @@ export default async function AdminUsersPage() {
         </form>
         <div className="mt-4 text-xs text-zinc-600 dark:text-zinc-400">
           Teams in DB: <span className="font-medium">{teams.length}</span>
+        </div>
+        <div className="mt-1 text-xs text-zinc-600 dark:text-zinc-400">
+          Flag graphics are loaded from filenames that match the team&apos;s flag code.
         </div>
       </div>
 
@@ -110,7 +114,9 @@ export default async function AdminUsersPage() {
                       <input type="hidden" name="userId" value={u.id} />
                       <input type="hidden" name="teamId" value={ut.teamId} />
                       <button className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-black/[.02] px-3 py-1 text-xs hover:bg-black/[.04] dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10">
-                        <span className="font-medium">{ut.team.name}</span>
+                        <span className="font-medium">
+                          <TeamName name={ut.team.name} flagCode={ut.team.flagCode} />
+                        </span>
                         <span className="text-zinc-500 dark:text-zinc-400">Remove</span>
                       </button>
                     </form>
@@ -124,4 +130,3 @@ export default async function AdminUsersPage() {
     </div>
   );
 }
-

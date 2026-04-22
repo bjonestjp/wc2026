@@ -28,6 +28,12 @@ async function main() {
     update: {},
   });
 
+  await prisma.appConfig.upsert({
+    where: { id: 1 },
+    create: { id: 1, activeTriviaSet: "REAL" },
+    update: {},
+  });
+
   // Create an initial admin user + invite code for local/dev convenience.
   // You can delete/rotate these anytime in the admin UI later.
   const existingAdmin = await prisma.user.findFirst({
@@ -63,4 +69,3 @@ main()
   .finally(async () => {
     await prisma.$disconnect();
   });
-

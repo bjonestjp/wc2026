@@ -1,23 +1,15 @@
 import { prisma } from "@/lib/prisma";
-import { MatchStatus, PickSelection } from "@prisma/client";
-
-export type ScoringConfigShape = {
-  pointsPerCorrect: number;
-  streakBonusStartAt: number;
-  streakBonusPoints: number;
-  missedPickBreaksStreak: boolean;
-};
-
-const DEFAULT_CONFIG: ScoringConfigShape = {
-  pointsPerCorrect: 3,
-  streakBonusStartAt: 3,
-  streakBonusPoints: 1,
-  missedPickBreaksStreak: false,
-};
+import { MatchStatus } from "@prisma/client";
+import {
+  DEFAULT_SCORING_CONFIG,
+  outcomeFromScore,
+  pointsForPick,
+  type ScoringConfigShape,
+} from "@/lib/scoring-logic";
 
 export async function getScoringConfig(): Promise<ScoringConfigShape> {
   const row = await prisma.scoringConfig.findUnique({ where: { id: 1 } });
-  if (!row) return DEFAULT_CONFIG;
+  if (!row) return DEFAULT_SCORING_CONFIG;
   return {
     pointsPerCorrect: row.pointsPerCorrect,
     streakBonusStartAt: row.streakBonusStartAt,
@@ -25,28 +17,7 @@ export async function getScoringConfig(): Promise<ScoringConfigShape> {
     missedPickBreaksStreak: row.missedPickBreaksStreak,
   };
 }
-
-export function outcomeFromScore(
-  homeScore: number,
-  awayScore: number,
-): PickSelection {
-  if (homeScore > awayScore) return PickSelection.HOME;
-  if (homeScore < awayScore) return PickSelection.AWAY;
-  return PickSelection.DRAW;
-}
-
-export function pointsForPick(params: {
-  config: ScoringConfigShape;
-  isCorrect: boolean;
-  streakAfter: number;
-}): number {
-  const base = params.isCorrect ? params.config.pointsPerCorrect : 0;
-  const bonus =
-    params.isCorrect && params.streakAfter >= params.config.streakBonusStartAt
-      ? params.config.streakBonusPoints
-      : 0;
-  return base + bonus;
-}
+export { outcomeFromScore, pointsForPick };
 
 export async function assertMatchFinal(matchId: string) {
   const match = await prisma.match.findUnique({
@@ -57,4 +28,3 @@ export async function assertMatchFinal(matchId: string) {
     throw new Error("Match is not final");
   }
 }
-

@@ -1,0 +1,18 @@
+[
+  {
+    "stage": "GROUP",
+    "groupCode": "A",
+    "homeTeamName": "England",
+    "awayTeamName": "France",
+    "homeScore": 2,
+    "awayScore": 1
+  },
+  {
+    "stage": "R16",
+    "bracketOrder": 1,
+    "homeScore": 1,
+    "awayScore": 1,
+    "homePenalties": 4,
+    "awayPenalties": 3
+  }
+]
