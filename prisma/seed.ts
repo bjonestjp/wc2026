@@ -3,6 +3,7 @@ import { PrismaClient, UserRole } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
 import { createHash, randomBytes } from "node:crypto";
+import { DEFAULT_TEAMS } from "../scripts/lib/default-teams";
 
 const connectionString = process.env.DATABASE_URL;
 if (!connectionString) throw new Error("DATABASE_URL is not set");
@@ -33,6 +34,21 @@ async function main() {
     create: { id: 1, activeTriviaSet: "REAL" },
     update: {},
   });
+
+  for (const team of DEFAULT_TEAMS) {
+    await prisma.team.upsert({
+      where: { name: team.name },
+      update: {
+        groupCode: team.groupCode,
+        flagCode: team.flagCode,
+      },
+      create: {
+        name: team.name,
+        groupCode: team.groupCode,
+        flagCode: team.flagCode,
+      },
+    });
+  }
 
   // Create an initial admin user + invite code for local/dev convenience.
   // You can delete/rotate these anytime in the admin UI later.

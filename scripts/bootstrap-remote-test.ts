@@ -5,6 +5,7 @@ import { readJsonFile, type FixtureFileRow, type TriviaFileRow } from "./lib/tou
 import { autoWireKnockoutBracketScript, shiftTriviaDateKey } from "./lib/tournament-ops";
 import { randomBytes, createHash, scrypt } from "node:crypto";
 import { promisify } from "node:util";
+import { DEFAULT_TEAMS } from "./lib/default-teams";
 
 const scryptAsync = promisify(scrypt);
 
@@ -82,11 +83,10 @@ async function main() {
   const triviaSet = (getArg("set") ?? DEFAULT_TRIVIA_SET).trim().toUpperCase();
   const triviaStartOn = getArg("trivia-start-on") ?? "2026-04-22";
 
-  const [fixtures, triviaRows, teamRows, adminPasswordHash, userPasswordHash] =
+  const [fixtures, triviaRows, adminPasswordHash, userPasswordHash] =
     await Promise.all([
       readJsonFile<FixtureFileRow[]>(fixturesPath),
       readJsonFile<TriviaFileRow[]>(triviaPath),
-      prisma.team.findMany({ select: { id: true, name: true }, take: 500 }),
       hashPassword(ADMIN_PASSWORD),
       hashPassword(USER_PASSWORD),
     ]);
@@ -94,14 +94,18 @@ async function main() {
   if (fixtures.length === 0) throw new Error("Fixture file is empty");
   if (triviaRows.length === 0) throw new Error("Trivia file is empty");
 
-  const teamIdByName = new Map(teamRows.map((team) => [team.name, team.id]));
-  const kickoffs = buildCompressedKickoffs(
-    fixtures,
-    startIso,
-    intervalMinutes,
-    stageGapMinutes,
-  );
+  const kickoffs = buildCompressedKickoffs(fixtures, startIso, intervalMinutes, stageGapMinutes);
   const inviteCode = `DEV-${randomBytes(8).toString("hex")}`;
+  const triviaQuestions = triviaRows.map((row, index) => ({
+    triviaSet,
+    publishOn: shiftTriviaDateKey(triviaStartOn, index),
+    prompt: row.prompt,
+    optionA: row.optionA,
+    optionB: row.optionB,
+    optionC: row.optionC,
+    optionD: row.optionD,
+    correctOption: row.correctOption,
+  }));
 
   await prisma.$transaction(async (tx) => {
     await tx.scoringConfig.upsert({
@@ -133,6 +137,27 @@ async function main() {
     await tx.matchAdvancement.deleteMany({});
     await tx.match.deleteMany({});
     await tx.user.deleteMany({ where: { role: UserRole.USER } });
+
+    for (const team of DEFAULT_TEAMS) {
+      await tx.team.upsert({
+        where: { name: team.name },
+        update: {
+          groupCode: team.groupCode,
+          flagCode: team.flagCode,
+        },
+        create: {
+          name: team.name,
+          groupCode: team.groupCode,
+          flagCode: team.flagCode,
+        },
+      });
+    }
+
+    const teamRows = await tx.team.findMany({
+      select: { id: true, name: true },
+      take: 500,
+    });
+    const teamIdByName = new Map(teamRows.map((team) => [team.name, team.id]));
 
     await tx.user.upsert({
       where: { name: ADMIN_NAME },
@@ -176,22 +201,11 @@ async function main() {
       },
     });
 
-    for (const [index, row] of triviaRows.entries()) {
-      await tx.triviaQuestion.create({
-        data: {
-          triviaSet,
-          publishOn: shiftTriviaDateKey(triviaStartOn, index),
-          prompt: row.prompt,
-          optionA: row.optionA,
-          optionB: row.optionB,
-          optionC: row.optionC,
-          optionD: row.optionD,
-          correctOption: row.correctOption,
-        },
-      });
-    }
+    await tx.triviaQuestion.createMany({
+      data: triviaQuestions,
+    });
 
-    for (const fixture of fixtures) {
+    const matchesToCreate = fixtures.map((fixture) => {
       const kickoffAt = kickoffs.get(fixture);
       if (!kickoffAt || Number.isNaN(kickoffAt.getTime())) {
         throw new Error(`Fixture is missing a valid kickoffAt for stage ${fixture.stage}`);
@@ -211,22 +225,27 @@ async function main() {
         throw new Error(`Unknown away team: ${fixture.awayTeamName}`);
       }
 
-      await tx.match.create({
-        data: {
-          stage: fixture.stage,
-          groupCode: fixture.groupCode ?? null,
-          bracketOrder: fixture.bracketOrder ?? null,
-          kickoffAt,
-          status: MatchStatus.SCHEDULED,
-          homeTeamId,
-          awayTeamId,
-          homeScore: null,
-          awayScore: null,
-          homePenalties: null,
-          awayPenalties: null,
-        },
-      });
-    }
+      return {
+        stage: fixture.stage,
+        groupCode: fixture.groupCode ?? null,
+        bracketOrder: fixture.bracketOrder ?? null,
+        kickoffAt,
+        status: MatchStatus.SCHEDULED,
+        homeTeamId,
+        awayTeamId,
+        homeScore: null,
+        awayScore: null,
+        homePenalties: null,
+        awayPenalties: null,
+      };
+    });
+
+    await tx.match.createMany({
+      data: matchesToCreate,
+    });
+  }, {
+    timeout: 60000,
+    maxWait: 10000,
   });
 
   await autoWireKnockoutBracketScript();

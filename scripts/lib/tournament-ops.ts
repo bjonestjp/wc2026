@@ -81,56 +81,62 @@ export async function autoWireKnockoutBracketScript() {
       where: { fromMatch: { stage: { in: [MatchStage.R32, MatchStage.R16, MatchStage.QF, MatchStage.SF] } } },
     });
 
+    const advancements: Array<{
+      fromMatchId: string;
+      toMatchId: string;
+      toSlot: KnockoutSlot;
+      type: AdvancementType;
+    }> = [];
+
     for (const [pairIdx, [a, b]] of roundPairs(r32).entries()) {
       const next = r16[pairIdx]?.id;
       if (!next) break;
-      await tx.matchAdvancement.createMany({
-        data: [
-          { fromMatchId: a.id, toMatchId: next, toSlot: KnockoutSlot.HOME, type: AdvancementType.WINNER },
-          { fromMatchId: b.id, toMatchId: next, toSlot: KnockoutSlot.AWAY, type: AdvancementType.WINNER },
-        ],
-      });
+      advancements.push(
+        { fromMatchId: a.id, toMatchId: next, toSlot: KnockoutSlot.HOME, type: AdvancementType.WINNER },
+        { fromMatchId: b.id, toMatchId: next, toSlot: KnockoutSlot.AWAY, type: AdvancementType.WINNER },
+      );
     }
 
     for (const [pairIdx, [a, b]] of roundPairs(r16).entries()) {
       const next = qf[pairIdx]?.id;
       if (!next) break;
-      await tx.matchAdvancement.createMany({
-        data: [
-          { fromMatchId: a.id, toMatchId: next, toSlot: KnockoutSlot.HOME, type: AdvancementType.WINNER },
-          { fromMatchId: b.id, toMatchId: next, toSlot: KnockoutSlot.AWAY, type: AdvancementType.WINNER },
-        ],
-      });
+      advancements.push(
+        { fromMatchId: a.id, toMatchId: next, toSlot: KnockoutSlot.HOME, type: AdvancementType.WINNER },
+        { fromMatchId: b.id, toMatchId: next, toSlot: KnockoutSlot.AWAY, type: AdvancementType.WINNER },
+      );
     }
 
     for (const [pairIdx, [a, b]] of roundPairs(qf).entries()) {
       const next = sf[pairIdx]?.id;
       if (!next) break;
-      await tx.matchAdvancement.createMany({
-        data: [
-          { fromMatchId: a.id, toMatchId: next, toSlot: KnockoutSlot.HOME, type: AdvancementType.WINNER },
-          { fromMatchId: b.id, toMatchId: next, toSlot: KnockoutSlot.AWAY, type: AdvancementType.WINNER },
-        ],
-      });
+      advancements.push(
+        { fromMatchId: a.id, toMatchId: next, toSlot: KnockoutSlot.HOME, type: AdvancementType.WINNER },
+        { fromMatchId: b.id, toMatchId: next, toSlot: KnockoutSlot.AWAY, type: AdvancementType.WINNER },
+      );
     }
 
     if (finalId && sf.length >= 2) {
-      await tx.matchAdvancement.createMany({
-        data: [
-          { fromMatchId: sf[0].id, toMatchId: finalId, toSlot: KnockoutSlot.HOME, type: AdvancementType.WINNER },
-          { fromMatchId: sf[1].id, toMatchId: finalId, toSlot: KnockoutSlot.AWAY, type: AdvancementType.WINNER },
-        ],
-      });
+      advancements.push(
+        { fromMatchId: sf[0].id, toMatchId: finalId, toSlot: KnockoutSlot.HOME, type: AdvancementType.WINNER },
+        { fromMatchId: sf[1].id, toMatchId: finalId, toSlot: KnockoutSlot.AWAY, type: AdvancementType.WINNER },
+      );
     }
 
     if (thirdId && sf.length >= 2) {
+      advancements.push(
+        { fromMatchId: sf[0].id, toMatchId: thirdId, toSlot: KnockoutSlot.HOME, type: AdvancementType.LOSER },
+        { fromMatchId: sf[1].id, toMatchId: thirdId, toSlot: KnockoutSlot.AWAY, type: AdvancementType.LOSER },
+      );
+    }
+
+    if (advancements.length > 0) {
       await tx.matchAdvancement.createMany({
-        data: [
-          { fromMatchId: sf[0].id, toMatchId: thirdId, toSlot: KnockoutSlot.HOME, type: AdvancementType.LOSER },
-          { fromMatchId: sf[1].id, toMatchId: thirdId, toSlot: KnockoutSlot.AWAY, type: AdvancementType.LOSER },
-        ],
+        data: advancements,
       });
     }
+  }, {
+    timeout: 60000,
+    maxWait: 10000,
   });
 }
 
