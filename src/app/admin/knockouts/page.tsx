@@ -1,21 +1,25 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { MatchStage } from "@prisma/client";
-import { setupKnockoutBracketAction } from "./actions";
+import { getGroupTables } from "@/lib/group-standings";
+import { populateRoundOf32Action, setupKnockoutBracketAction } from "./actions";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminKnockoutsPage() {
-  const [counts, advCount] = await Promise.all([
+  const [counts, advCount, groupTables] = await Promise.all([
     prisma.match.groupBy({
       by: ["stage"],
       where: { stage: { in: [MatchStage.R32, MatchStage.R16, MatchStage.QF, MatchStage.SF, MatchStage.THIRD_PLACE, MatchStage.FINAL] } },
       _count: { _all: true },
     }),
     prisma.matchAdvancement.count(),
+    getGroupTables(),
   ]);
 
   const countByStage = new Map(counts.map((c) => [c.stage, c._count._all]));
+  const completedGroups = groupTables.filter((table) => table.isComplete).length;
+  const totalGroups = groupTables.length;
 
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-1 flex-col px-4 py-10">
@@ -59,12 +63,22 @@ export default async function AdminKnockoutsPage() {
           </button>
         </form>
 
+        <form action={populateRoundOf32Action} className="mt-3">
+          <button className="h-11 w-full rounded-xl border border-black/10 px-4 text-sm font-medium hover:bg-black/[.04] dark:border-white/10 dark:hover:bg-white/10">
+            Populate R32 from group tables
+          </button>
+        </form>
+
         <p className="mt-3 text-xs text-zinc-600 dark:text-zinc-400">
           This sets `bracketOrder` per round and creates advancement links:
           winners advance through rounds; semi-final losers go to third-place.
+        </p>
+        <p className="mt-2 text-xs text-zinc-600 dark:text-zinc-400">
+          Group tables complete: {completedGroups}/{totalGroups}. Fixed winner/runner-up
+          pairings populate as soon as those groups are complete. Third-place-dependent
+          R32 slots populate once all groups are complete.
         </p>
       </div>
     </div>
   );
 }
-

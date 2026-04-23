@@ -11,8 +11,12 @@ const scryptAsync = promisify(scrypt);
 
 const ADMIN_NAME = "Admin";
 const ADMIN_PASSWORD = "admin12345";
-const USER_NAME = "Test User";
-const USER_PASSWORD = "user12345";
+const DEFAULT_TEST_USERS = [
+  { name: "user1", password: "user12345" },
+  { name: "user2", password: "user22345" },
+  { name: "user3", password: "user32345" },
+  { name: "user4", password: "user42345" },
+] as const;
 const DEFAULT_FIXTURES_PATH = "data/test_1/real-fixtures.scaffold.json";
 const DEFAULT_TRIVIA_PATH = "data/test_1/trivia.example.json";
 const DEFAULT_TRIVIA_SET = "TEST";
@@ -83,12 +87,12 @@ async function main() {
   const triviaSet = (getArg("set") ?? DEFAULT_TRIVIA_SET).trim().toUpperCase();
   const triviaStartOn = getArg("trivia-start-on") ?? "2026-04-22";
 
-  const [fixtures, triviaRows, adminPasswordHash, userPasswordHash] =
+  const [fixtures, triviaRows, adminPasswordHash, testUserPasswordHashes] =
     await Promise.all([
       readJsonFile<FixtureFileRow[]>(fixturesPath),
       readJsonFile<TriviaFileRow[]>(triviaPath),
       hashPassword(ADMIN_PASSWORD),
-      hashPassword(USER_PASSWORD),
+      Promise.all(DEFAULT_TEST_USERS.map((user) => hashPassword(user.password))),
     ]);
 
   if (fixtures.length === 0) throw new Error("Fixture file is empty");
@@ -172,18 +176,20 @@ async function main() {
       },
     });
 
-    await tx.user.upsert({
-      where: { name: USER_NAME },
-      update: {
-        role: UserRole.USER,
-        passwordHash: userPasswordHash,
-      },
-      create: {
-        name: USER_NAME,
-        role: UserRole.USER,
-        passwordHash: userPasswordHash,
-      },
-    });
+    for (const [index, user] of DEFAULT_TEST_USERS.entries()) {
+      await tx.user.upsert({
+        where: { name: user.name },
+        update: {
+          role: UserRole.USER,
+          passwordHash: testUserPasswordHashes[index],
+        },
+        create: {
+          name: user.name,
+          role: UserRole.USER,
+          passwordHash: testUserPasswordHashes[index],
+        },
+      });
+    }
 
     const allUsers = await tx.user.findMany({
       select: { id: true },
@@ -254,7 +260,9 @@ async function main() {
   console.log(`Fixtures loaded: ${fixtures.length}`);
   console.log(`Trivia loaded into ${triviaSet}: ${triviaRows.length}`);
   console.log(`Admin login: ${ADMIN_NAME} / ${ADMIN_PASSWORD}`);
-  console.log(`Regular user login: ${USER_NAME} / ${USER_PASSWORD}`);
+  for (const user of DEFAULT_TEST_USERS) {
+    console.log(`Test user login: ${user.name} / ${user.password}`);
+  }
   console.log(`Invite code: ${inviteCode}`);
 }
 

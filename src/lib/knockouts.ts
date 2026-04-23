@@ -1,6 +1,7 @@
 import "server-only";
 
 import { prisma } from "@/lib/prisma";
+import { compareGroupRows, getGroupTables, type GroupStandingRow } from "@/lib/group-standings";
 import {
   AdvancementType,
   KnockoutSlot,
@@ -12,6 +13,162 @@ function roundPairs<T>(arr: T[]): Array<[T, T]> {
   const out: Array<[T, T]> = [];
   for (let i = 0; i + 1 < arr.length; i += 2) out.push([arr[i], arr[i + 1]]);
   return out;
+}
+
+const THIRD_PLACE_WINNER_GROUPS = [
+  "A",
+  "B",
+  "D",
+  "E",
+  "G",
+  "I",
+  "K",
+  "L",
+] as const;
+
+const THIRD_PLACE_ALLOWED_GROUPS: Record<(typeof THIRD_PLACE_WINNER_GROUPS)[number], string[]> = {
+  A: ["C", "E", "F", "H", "I"],
+  B: ["E", "F", "G", "I", "J"],
+  D: ["B", "E", "F", "I", "J"],
+  E: ["A", "B", "C", "D", "F"],
+  G: ["A", "E", "H", "I", "J"],
+  I: ["C", "D", "F", "G", "H"],
+  K: ["D", "E", "I", "J", "L"],
+  L: ["E", "H", "I", "J", "K"],
+};
+
+type R32SlotDefinition =
+  | { bracketOrder: number; home: { kind: "group"; groupCode: string; place: 1 | 2 }; away: { kind: "group"; groupCode: string; place: 1 | 2 } }
+  | { bracketOrder: number; home: { kind: "group"; groupCode: string; place: 1 | 2 }; away: { kind: "third"; winnerGroup: (typeof THIRD_PLACE_WINNER_GROUPS)[number] } };
+
+const R32_SLOT_DEFINITIONS: R32SlotDefinition[] = [
+  { bracketOrder: 1, home: { kind: "group", groupCode: "A", place: 2 }, away: { kind: "group", groupCode: "B", place: 2 } },
+  { bracketOrder: 2, home: { kind: "group", groupCode: "E", place: 1 }, away: { kind: "third", winnerGroup: "E" } },
+  { bracketOrder: 3, home: { kind: "group", groupCode: "F", place: 1 }, away: { kind: "group", groupCode: "C", place: 2 } },
+  { bracketOrder: 4, home: { kind: "group", groupCode: "C", place: 1 }, away: { kind: "group", groupCode: "F", place: 2 } },
+  { bracketOrder: 5, home: { kind: "group", groupCode: "I", place: 1 }, away: { kind: "third", winnerGroup: "I" } },
+  { bracketOrder: 6, home: { kind: "group", groupCode: "E", place: 2 }, away: { kind: "group", groupCode: "I", place: 2 } },
+  { bracketOrder: 7, home: { kind: "group", groupCode: "A", place: 1 }, away: { kind: "third", winnerGroup: "A" } },
+  { bracketOrder: 8, home: { kind: "group", groupCode: "L", place: 1 }, away: { kind: "third", winnerGroup: "L" } },
+  { bracketOrder: 9, home: { kind: "group", groupCode: "D", place: 1 }, away: { kind: "third", winnerGroup: "D" } },
+  { bracketOrder: 10, home: { kind: "group", groupCode: "G", place: 1 }, away: { kind: "third", winnerGroup: "G" } },
+  { bracketOrder: 11, home: { kind: "group", groupCode: "K", place: 2 }, away: { kind: "group", groupCode: "L", place: 2 } },
+  { bracketOrder: 12, home: { kind: "group", groupCode: "H", place: 1 }, away: { kind: "group", groupCode: "J", place: 2 } },
+  { bracketOrder: 13, home: { kind: "group", groupCode: "B", place: 1 }, away: { kind: "third", winnerGroup: "B" } },
+  { bracketOrder: 14, home: { kind: "group", groupCode: "J", place: 1 }, away: { kind: "group", groupCode: "H", place: 2 } },
+  { bracketOrder: 15, home: { kind: "group", groupCode: "K", place: 1 }, away: { kind: "third", winnerGroup: "K" } },
+  { bracketOrder: 16, home: { kind: "group", groupCode: "D", place: 2 }, away: { kind: "group", groupCode: "G", place: 2 } },
+];
+
+function combinationKey(groupCodes: string[]) {
+  return [...groupCodes].sort().join("");
+}
+
+function findLexicographicThirdAssignments(groupCodes: string[]) {
+  const available = new Set(groupCodes);
+  const winnerGroups = [...THIRD_PLACE_WINNER_GROUPS];
+  let best: Record<string, string> | null = null;
+
+  function backtrack(index: number, assigned: Record<string, string>) {
+    if (best) return;
+    if (index >= winnerGroups.length) {
+      best = { ...assigned };
+      return;
+    }
+
+    const winnerGroup = winnerGroups[index];
+    const candidates = THIRD_PLACE_ALLOWED_GROUPS[winnerGroup]
+      .filter((groupCode) => available.has(groupCode))
+      .sort();
+
+    for (const candidate of candidates) {
+      available.delete(candidate);
+      assigned[winnerGroup] = candidate;
+      backtrack(index + 1, assigned);
+      if (best) return;
+      delete assigned[winnerGroup];
+      available.add(candidate);
+    }
+  }
+
+  backtrack(0, {});
+  return best;
+}
+
+function resolveThirdPlaceAssignments(thirdPlacedRows: GroupStandingRow[]) {
+  const qualifiedGroupCodes = thirdPlacedRows.map((row) => row.groupCode);
+  const assignments = findLexicographicThirdAssignments(qualifiedGroupCodes);
+  if (!assignments) {
+    throw new Error(`Could not resolve third-place assignments for ${combinationKey(qualifiedGroupCodes)}`);
+  }
+  return assignments;
+}
+
+export async function populateRoundOf32FromGroups() {
+  const [groupTables, r32Matches] = await Promise.all([
+    getGroupTables(),
+    prisma.match.findMany({
+      where: { stage: MatchStage.R32 },
+      orderBy: [{ bracketOrder: "asc" }, { kickoffAt: "asc" }],
+      select: {
+        id: true,
+        bracketOrder: true,
+        status: true,
+        homeTeamId: true,
+        awayTeamId: true,
+      },
+      take: 32,
+    }),
+  ]);
+
+  const tableByGroupCode = new Map(groupTables.map((table) => [table.groupCode, table]));
+  const r32ByOrder = new Map(r32Matches.map((match) => [match.bracketOrder ?? 0, match]));
+  const completedTables = groupTables.filter((table) => table.isComplete);
+
+  const thirdPlaceAssignments =
+    completedTables.length === groupTables.length
+      ? resolveThirdPlaceAssignments(
+          completedTables
+            .map((table) => table.rows[2] ?? null)
+            .filter((row): row is GroupStandingRow => Boolean(row))
+            .sort(compareGroupRows)
+            .slice(0, 8),
+        )
+      : null;
+
+  await prisma.$transaction(async (tx) => {
+    for (const definition of R32_SLOT_DEFINITIONS) {
+      const match = r32ByOrder.get(definition.bracketOrder);
+      if (!match || match.status === MatchStatus.FINAL) continue;
+
+      const homeGroupTable = tableByGroupCode.get(definition.home.groupCode);
+      const homeTeamId =
+        homeGroupTable?.isComplete
+          ? homeGroupTable.rows[definition.home.place - 1]?.teamId ?? null
+          : null;
+
+      let awayTeamId: string | null = null;
+      if (definition.away.kind === "group") {
+        const awayGroupTable = tableByGroupCode.get(definition.away.groupCode);
+        awayTeamId =
+          awayGroupTable?.isComplete
+            ? awayGroupTable.rows[definition.away.place - 1]?.teamId ?? null
+            : null;
+      } else if (thirdPlaceAssignments) {
+        const thirdGroupCode = thirdPlaceAssignments[definition.away.winnerGroup];
+        const awayGroupTable = tableByGroupCode.get(thirdGroupCode);
+        awayTeamId = awayGroupTable?.rows[2]?.teamId ?? null;
+      }
+
+      await tx.match.update({
+        where: { id: match.id },
+        data: {
+          homeTeamId,
+          awayTeamId,
+        },
+      });
+    }
+  });
 }
 
 export async function autoWireKnockoutBracket() {
@@ -244,4 +401,3 @@ export async function advanceFromFinalizedMatch(matchId: string) {
     }
   });
 }
-
