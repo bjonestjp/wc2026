@@ -10,6 +10,7 @@
     "reset:tournament": "tsx scripts/reset-tournament.ts",
     "fixtures:export": "tsx scripts/fixtures-export.ts",
     "fixtures:load": "tsx scripts/fixtures-load.ts",
+    "reset:new-test": "tsx scripts/reset-for-new-test.ts",
     "reschedule:matchdays": "tsx scripts/reschedule-matchdays.ts",
     "reschedule:knockouts": "tsx scripts/reschedule-knockouts.ts",
     "results:load": "tsx scripts/results-load.ts",
