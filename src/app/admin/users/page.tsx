@@ -115,7 +115,7 @@ export default async function AdminUsersPage() {
                       <input type="hidden" name="teamId" value={ut.teamId} />
                       <button className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-black/[.02] px-3 py-1 text-xs hover:bg-black/[.04] dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10">
                         <span className="font-medium">
-                          <TeamName name={ut.team.name} flagCode={ut.team.flagCode} />
+                          <TeamName teamId={ut.team.id} name={ut.team.name} flagCode={ut.team.flagCode} />
                         </span>
                         <span className="text-zinc-500 dark:text-zinc-400">Remove</span>
                       </button>

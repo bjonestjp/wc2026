@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
+import { getCurrentUser } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+import { TeamHighlightProvider } from "@/app/components/TeamHighlightProvider";
 import "./globals.css";
 
 const robotoCondensed = localFont({
@@ -19,17 +22,34 @@ export const metadata: Metadata = {
   description: "Invite-only World Cup 2026 prediction pool — team draw & daily picks.",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const user = await getCurrentUser();
+  const highlightedTeams = user
+    ? await prisma.userTeam.findMany({
+        where: { userId: user.id },
+        include: { team: true },
+        orderBy: { team: { name: "asc" } },
+        take: 100,
+      })
+    : [];
+
   return (
     <html
       lang="en"
       className={`${robotoCondensed.variable} ${bitcountGridDouble.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        <TeamHighlightProvider
+          highlightedTeamIds={highlightedTeams.map((entry) => entry.teamId)}
+          highlightedTeamNames={highlightedTeams.map((entry) => entry.team.name)}
+        >
+          {children}
+        </TeamHighlightProvider>
+      </body>
     </html>
   );
 }

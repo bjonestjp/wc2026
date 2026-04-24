@@ -60,7 +60,7 @@ export default async function GroupsPage() {
                     className="grid grid-cols-[1fr_36px_36px_36px_36px_44px_44px_44px_44px] gap-2 px-5 py-3 text-sm"
                   >
                     <div className="min-w-0 font-medium">
-                      <TeamName name={r.teamName} flagCode={r.flagCode} />
+                      <TeamName teamId={r.teamId} name={r.teamName} flagCode={r.flagCode} />
                     </div>
                     <div className="text-right tabular-nums">{r.played}</div>
                     <div className="text-right tabular-nums">{r.won}</div>

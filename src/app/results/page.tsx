@@ -45,11 +45,11 @@ export default async function ResultsPage() {
               <div key={m.id} className="px-5 py-3">
                 <div className="flex items-center justify-between gap-3">
                   <div className="text-sm font-medium">
-                    <TeamName name={m.homeTeam?.name} flagCode={m.homeTeam?.flagCode} />{" "}
+                    <TeamName teamId={m.homeTeam?.id} name={m.homeTeam?.name} flagCode={m.homeTeam?.flagCode} />{" "}
                     <span className="tabular-nums">
                       {m.homeScore}–{m.awayScore}
                     </span>{" "}
-                    <TeamName name={m.awayTeam?.name} flagCode={m.awayTeam?.flagCode} />
+                    <TeamName teamId={m.awayTeam?.id} name={m.awayTeam?.name} flagCode={m.awayTeam?.flagCode} />
                   </div>
                   <div className="text-xs text-zinc-600 dark:text-zinc-400">
                     <LocalTime date={m.kickoffAt.toISOString()} short />

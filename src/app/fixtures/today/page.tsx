@@ -69,9 +69,9 @@ export default async function TodayFixturesPage() {
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div className="text-sm font-medium">
                     <span className="inline-flex flex-wrap items-center gap-2">
-                      <TeamName name={m.homeTeam?.name} flagCode={m.homeTeam?.flagCode} />
+                      <TeamName teamId={m.homeTeam?.id} name={m.homeTeam?.name} flagCode={m.homeTeam?.flagCode} />
                       <span>vs</span>
-                      <TeamName name={m.awayTeam?.name} flagCode={m.awayTeam?.flagCode} />
+                      <TeamName teamId={m.awayTeam?.id} name={m.awayTeam?.name} flagCode={m.awayTeam?.flagCode} />
                     </span>
                   </div>
                   <div className="text-xs text-zinc-600 dark:text-zinc-400">
@@ -86,8 +86,10 @@ export default async function TodayFixturesPage() {
                     {
                       label: (
                         <TeamName
+                          teamId={m.homeTeam?.id}
                           name={m.homeTeam?.name ?? "Home"}
                           flagCode={m.homeTeam?.flagCode}
+                          interactive={false}
                         />
                       ),
                       value: PickSelection.HOME,
@@ -96,8 +98,10 @@ export default async function TodayFixturesPage() {
                     {
                       label: (
                         <TeamName
+                          teamId={m.awayTeam?.id}
                           name={m.awayTeam?.name ?? "Away"}
                           flagCode={m.awayTeam?.flagCode}
+                          interactive={false}
                         />
                       ),
                       value: PickSelection.AWAY,
