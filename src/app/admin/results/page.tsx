@@ -4,6 +4,7 @@ import { MatchStatus } from "@prisma/client";
 import { LocalTime } from "@/app/components/LocalTime";
 import { ResultForm } from "./ResultForm";
 import { TeamName } from "@/app/components/TeamName";
+import { InlineMatchScore } from "@/app/components/InlineMatchScore";
 
 export const dynamic = "force-dynamic";
 
@@ -58,10 +59,24 @@ export default async function AdminResultsPage() {
 
                 {m.status === MatchStatus.FINAL ? (
                   <div className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-                    Final:{" "}
-                    <span className="font-medium">
-                      {m.homeScore}–{m.awayScore}
-                    </span>
+                    <span className="font-medium text-zinc-800 dark:text-zinc-200">Final:</span>{" "}
+                    <InlineMatchScore
+                      homeTeam={{
+                        id: m.homeTeam?.id,
+                        name: m.homeTeam?.name,
+                        flagCode: m.homeTeam?.flagCode,
+                      }}
+                      awayTeam={{
+                        id: m.awayTeam?.id,
+                        name: m.awayTeam?.name,
+                        flagCode: m.awayTeam?.flagCode,
+                      }}
+                      homeScore={m.homeScore}
+                      awayScore={m.awayScore}
+                      interactive={false}
+                      className="font-medium text-zinc-800 dark:text-zinc-200"
+                      scoreClassName="text-sm font-semibold text-zinc-500 dark:text-zinc-400"
+                    />
                     {m.homePenalties != null && m.awayPenalties != null ? (
                       <span className="ml-2 text-xs">
                         (pens {m.homePenalties}–{m.awayPenalties})

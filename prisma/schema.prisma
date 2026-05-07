@@ -106,6 +106,8 @@ model ScoringConfig {
 model AppConfig {
   id              Int      @id
   activeTriviaSet String   @default("REAL")
+  simulationEnabled Boolean @default(false)
+  simulationSeed   String?
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 }
@@ -146,6 +148,11 @@ model Match {
   awayScore  Int?
   homePenalties Int?
   awayPenalties Int?
+  simulationApplyAt DateTime?
+  simulationHomeScore Int?
+  simulationAwayScore Int?
+  simulationHomePenalties Int?
+  simulationAwayPenalties Int?
   bracketOrder Int?
   createdAt  DateTime    @default(now())
   updatedAt  DateTime    @updatedAt
@@ -161,6 +168,7 @@ model Match {
   @@index([status])
   @@index([stage])
   @@index([bracketOrder])
+  @@index([simulationApplyAt])
 }
 
 model MatchAdvancement {

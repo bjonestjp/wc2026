@@ -1,0 +1,199 @@
+{
+  "source": "https://inside.fifa.com/en/fifa-world-ranking/men?gsid=395d49c1-864f-4095-a733-1644d5dd1731",
+  "officialUpdate": "2026-04-01",
+  "fetchedAt": "2026-05-07T11:40:14.836Z",
+  "teams": {
+    "Algeria": {
+      "fifaCode": "ALG",
+      "rank": 28
+    },
+    "Argentina": {
+      "fifaCode": "ARG",
+      "rank": 3
+    },
+    "Australia": {
+      "fifaCode": "AUS",
+      "rank": 27
+    },
+    "Austria": {
+      "fifaCode": "AUT",
+      "rank": 24
+    },
+    "Belgium": {
+      "fifaCode": "BEL",
+      "rank": 9
+    },
+    "Bosnia and Herzegovina": {
+      "fifaCode": "BIH",
+      "rank": 65
+    },
+    "Brazil": {
+      "fifaCode": "BRA",
+      "rank": 6
+    },
+    "Canada": {
+      "fifaCode": "CAN",
+      "rank": 30
+    },
+    "Cape Verde": {
+      "fifaCode": "CPV",
+      "rank": 69
+    },
+    "Colombia": {
+      "fifaCode": "COL",
+      "rank": 13
+    },
+    "Croatia": {
+      "fifaCode": "CRO",
+      "rank": 11
+    },
+    "Curaçao": {
+      "fifaCode": "CUW",
+      "rank": 82
+    },
+    "Czech Republic": {
+      "fifaCode": "CZE",
+      "rank": 41
+    },
+    "DR Congo": {
+      "fifaCode": "COD",
+      "rank": 46
+    },
+    "Ecuador": {
+      "fifaCode": "ECU",
+      "rank": 23
+    },
+    "Egypt": {
+      "fifaCode": "EGY",
+      "rank": 29
+    },
+    "England": {
+      "fifaCode": "ENG",
+      "rank": 4
+    },
+    "France": {
+      "fifaCode": "FRA",
+      "rank": 1
+    },
+    "Germany": {
+      "fifaCode": "GER",
+      "rank": 10
+    },
+    "Ghana": {
+      "fifaCode": "GHA",
+      "rank": 74
+    },
+    "Haiti": {
+      "fifaCode": "HAI",
+      "rank": 83
+    },
+    "Iran": {
+      "fifaCode": "IRN",
+      "rank": 21
+    },
+    "Iraq": {
+      "fifaCode": "IRQ",
+      "rank": 57
+    },
+    "Ivory Coast": {
+      "fifaCode": "CIV",
+      "rank": 34
+    },
+    "Japan": {
+      "fifaCode": "JPN",
+      "rank": 18
+    },
+    "Jordan": {
+      "fifaCode": "JOR",
+      "rank": 63
+    },
+    "Mexico": {
+      "fifaCode": "MEX",
+      "rank": 15
+    },
+    "Morocco": {
+      "fifaCode": "MAR",
+      "rank": 8
+    },
+    "Netherlands": {
+      "fifaCode": "NED",
+      "rank": 7
+    },
+    "New Zealand": {
+      "fifaCode": "NZL",
+      "rank": 85
+    },
+    "Norway": {
+      "fifaCode": "NOR",
+      "rank": 31
+    },
+    "Panama": {
+      "fifaCode": "PAN",
+      "rank": 33
+    },
+    "Paraguay": {
+      "fifaCode": "PAR",
+      "rank": 40
+    },
+    "Portugal": {
+      "fifaCode": "POR",
+      "rank": 5
+    },
+    "Qatar": {
+      "fifaCode": "QAT",
+      "rank": 55
+    },
+    "Saudia Arabia": {
+      "fifaCode": "KSA",
+      "rank": 61
+    },
+    "Scotland": {
+      "fifaCode": "SCO",
+      "rank": 43
+    },
+    "Senegal": {
+      "fifaCode": "SEN",
+      "rank": 14
+    },
+    "South Africa": {
+      "fifaCode": "RSA",
+      "rank": 60
+    },
+    "South Korea": {
+      "fifaCode": "KOR",
+      "rank": 25
+    },
+    "Spain": {
+      "fifaCode": "ESP",
+      "rank": 2
+    },
+    "Sweden": {
+      "fifaCode": "SWE",
+      "rank": 38
+    },
+    "Switzerland": {
+      "fifaCode": "SUI",
+      "rank": 19
+    },
+    "Tunisia": {
+      "fifaCode": "TUN",
+      "rank": 44
+    },
+    "Turkey": {
+      "fifaCode": "TUR",
+      "rank": 22
+    },
+    "Uruguay": {
+      "fifaCode": "URU",
+      "rank": 17
+    },
+    "USA": {
+      "fifaCode": "USA",
+      "rank": 16
+    },
+    "Uzbekistan": {
+      "fifaCode": "UZB",
+      "rank": 50
+    }
+  }
+}

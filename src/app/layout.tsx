@@ -3,6 +3,7 @@ import localFont from "next/font/local";
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { TeamHighlightProvider } from "@/app/components/TeamHighlightProvider";
+import { syncSimulatedResultsIfNeeded } from "@/lib/simulated-results";
 import "./globals.css";
 
 const robotoCondensed = localFont({
@@ -27,6 +28,7 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  await syncSimulatedResultsIfNeeded();
   const user = await getCurrentUser();
   const highlightedTeams = user
     ? await prisma.userTeam.findMany({

@@ -1,4 +1,5 @@
 import { getCurrentUser } from "@/lib/auth";
+import { RecentOutcomesCard } from "@/app/components/RecentOutcomesCard";
 import { TeamName } from "@/app/components/TeamName";
 import { TriviaCard } from "@/app/components/TriviaCard";
 import { prisma } from "@/lib/prisma";
@@ -118,6 +119,24 @@ export default async function Home() {
           awayPenalties: true,
         },
         take: 500,
+      })
+    : [];
+  const recentOutcomes = user
+    ? await prisma.match.findMany({
+        where: {
+          status: MatchStatus.FINAL,
+        },
+        include: {
+          homeTeam: true,
+          awayTeam: true,
+          picks: {
+            where: { userId: user.id },
+            select: { selection: true },
+            take: 1,
+          },
+        },
+        orderBy: { kickoffAt: "desc" },
+        take: 4,
       })
     : [];
 
@@ -250,6 +269,28 @@ export default async function Home() {
                 )}
               </div>
             </div>
+
+            <RecentOutcomesCard
+              userId={user.id}
+              outcomes={recentOutcomes.map((match) => ({
+                id: match.id,
+                kickoffAtIso: match.kickoffAt.toISOString(),
+                updatedAtIso: match.updatedAt.toISOString(),
+                homeTeam: {
+                  id: match.homeTeam?.id,
+                  name: match.homeTeam?.name,
+                  flagCode: match.homeTeam?.flagCode,
+                },
+                awayTeam: {
+                  id: match.awayTeam?.id,
+                  name: match.awayTeam?.name,
+                  flagCode: match.awayTeam?.flagCode,
+                },
+                homeScore: match.homeScore,
+                awayScore: match.awayScore,
+                userPick: match.picks[0]?.selection ?? null,
+              }))}
+            />
 
             <div className="mt-6 grid gap-3 sm:grid-cols-2">
               <Link

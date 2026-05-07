@@ -47,6 +47,20 @@ async function main() {
   const userPasswordHashes = await Promise.all(users.map((user) => hashPassword(user.password)));
 
   await prisma.$transaction(async (tx) => {
+    await tx.appConfig.upsert({
+      where: { id: 1 },
+      update: {
+        simulationEnabled: false,
+        simulationSeed: null,
+      },
+      create: {
+        id: 1,
+        activeTriviaSet: "REAL",
+        simulationEnabled: false,
+        simulationSeed: null,
+      },
+    });
+
     await tx.session.deleteMany({});
     await tx.inviteCode.deleteMany({});
     await tx.triviaAnswer.deleteMany({});
@@ -63,6 +77,11 @@ async function main() {
         awayScore: null,
         homePenalties: null,
         awayPenalties: null,
+        simulationApplyAt: null,
+        simulationHomeScore: null,
+        simulationAwayScore: null,
+        simulationHomePenalties: null,
+        simulationAwayPenalties: null,
       },
     });
 

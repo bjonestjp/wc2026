@@ -3,6 +3,7 @@
 import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { AdvancementType, KnockoutSlot, MatchStage, MatchStatus } from "@prisma/client";
 import { TeamName } from "@/app/components/TeamName";
+import { InlineMatchScore } from "@/app/components/InlineMatchScore";
 
 type MatchCard = {
   id: string;
@@ -153,7 +154,6 @@ export function BracketClient(props: Props) {
                 </div>
               ) : (
                 round.matches.map((m) => {
-                  const hasScore = m.homeScore != null && m.awayScore != null;
                   const hasPens = m.homePenalties != null && m.awayPenalties != null;
                   return (
                     <div
@@ -164,23 +164,16 @@ export function BracketClient(props: Props) {
                       <div className="text-[11px] text-zinc-600 dark:text-zinc-400">
                         {formatKickoff(m.kickoffAtIso)}
                       </div>
-                      <div className="mt-2 grid gap-1 text-sm">
-                        <div className="flex items-center justify-between gap-3">
-                          <span className="min-w-0 font-medium">
-                            <TeamName name={m.homeTeamName} flagCode={m.homeTeamFlagCode} />
-                          </span>
-                          <span className="tabular-nums text-zinc-700 dark:text-zinc-300">
-                            {hasScore ? m.homeScore : "—"}
-                          </span>
-                        </div>
-                        <div className="flex items-center justify-between gap-3">
-                          <span className="min-w-0 font-medium">
-                            <TeamName name={m.awayTeamName} flagCode={m.awayTeamFlagCode} />
-                          </span>
-                          <span className="tabular-nums text-zinc-700 dark:text-zinc-300">
-                            {hasScore ? m.awayScore : "—"}
-                          </span>
-                        </div>
+                      <div className="mt-2 text-sm font-medium">
+                        <InlineMatchScore
+                          homeTeam={{ name: m.homeTeamName, flagCode: m.homeTeamFlagCode }}
+                          awayTeam={{ name: m.awayTeamName, flagCode: m.awayTeamFlagCode }}
+                          homeScore={m.homeScore}
+                          awayScore={m.awayScore}
+                          interactive={false}
+                          className="gap-1.5"
+                          scoreClassName="text-sm font-semibold text-zinc-500 dark:text-zinc-400"
+                        />
                       </div>
                       {hasPens ? (
                         <div className="mt-2 text-[11px] text-zinc-600 dark:text-zinc-400">

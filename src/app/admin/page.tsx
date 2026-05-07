@@ -59,6 +59,15 @@ export default function AdminHomePage() {
             Queue and reorder daily trivia questions.
           </div>
         </Link>
+        <Link
+          href="/admin/ui-preview"
+          className="rounded-2xl border border-black/10 bg-white p-5 hover:bg-black/[.02] dark:border-white/10 dark:bg-zinc-950 dark:hover:bg-white/5"
+        >
+          <div className="text-sm font-medium">Prediction UI preview</div>
+          <div className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
+            Compare correct, incorrect, and pending pick feedback without changing live data.
+          </div>
+        </Link>
       </div>
     </div>
   );
