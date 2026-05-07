@@ -1,4 +1,18 @@
 [
-  { "name": "Brad", "password": "brad1234" },
-  { "name": "Cal", "password": "smalldogpride" }
+  { "name": "Brad Jones", "password": "brad1234", "simulated": false },
+  { "name": "Cal Jones", "password": "smalldogpride", "simulated": false },
+  { "name": "Alan Shearer", "simulated": true },
+  { "name": "Clarence Seedorf", "simulated": true },
+  { "name": "Gary Lineker", "simulated": true },
+  { "name": "Gary Neville", "simulated": true },
+  { "name": "Tommy Robinson", "simulated": true },
+  { "name": "Corinne Coulson", "simulated": true },
+  { "name": "Graham Maslen", "simulated": true },
+  { "name": "Christa Ackroyd", "simulated": true },
+  { "name": "Bradley Walsh", "simulated": true },
+  { "name": "Barney Walsh", "simulated": true },
+  { "name": "Wolf from Gladiators", "simulated": true },
+  { "name": "Prophet of Regret", "simulated": true },
+  { "name": "Jasminder Patel", "simulated": true },
+  { "name": "Bruce Fourside", "simulated": true }
 ]

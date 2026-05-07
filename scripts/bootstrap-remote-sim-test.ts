@@ -15,12 +15,13 @@ const DEFAULT_USERS_PATH = "data/test_3/users.json";
 const DEFAULT_FIXTURES_PATH = "data/test_1/real-fixtures.scaffold.json";
 const DEFAULT_TRIVIA_PATH = "data/test_1/trivia.example.json";
 const DEFAULT_TRIVIA_SET = "TEST";
-const DEFAULT_START_AT = "2026-05-07T11:45:00Z";
+const DEFAULT_START_AT = "2026-05-07T12:15:00Z";
 const DEFAULT_SIMULATION_SEED = "20260507";
 
 type UserFileRow = {
   name: string;
-  password: string;
+  password?: string;
+  simulated?: boolean;
 };
 
 const STAGE_SORT_ORDER: Record<MatchStage, number> = {
@@ -41,6 +42,43 @@ async function hashPassword(password: string): Promise<string> {
   const salt = randomBytes(16).toString("hex");
   const buffer = (await scryptAsync(password, salt, 64)) as Buffer;
   return `s:${salt}:${buffer.toString("hex")}`;
+}
+
+function hashSeed(input: string) {
+  let h = 1779033703 ^ input.length;
+  for (let i = 0; i < input.length; i += 1) {
+    h = Math.imul(h ^ input.charCodeAt(i), 3432918353);
+    h = (h << 13) | (h >>> 19);
+  }
+  return () => {
+    h = Math.imul(h ^ (h >>> 16), 2246822507);
+    h = Math.imul(h ^ (h >>> 13), 3266489909);
+    return (h ^= h >>> 16) >>> 0;
+  };
+}
+
+function mulberry32(seed: number) {
+  return () => {
+    let t = (seed += 0x6d2b79f5);
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function createRng(seedInput: string) {
+  const seedFactory = hashSeed(seedInput);
+  return mulberry32(seedFactory());
+}
+
+function shuffled<T>(values: T[], seed: string) {
+  const output = [...values];
+  const rng = createRng(seed);
+  for (let i = output.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(rng() * (i + 1));
+    [output[i], output[j]] = [output[j], output[i]];
+  }
+  return output;
 }
 
 function buildCompressedKickoffs(
@@ -90,23 +128,39 @@ async function main() {
   const triviaStartOn = getArg("trivia-start-on") ?? "2026-05-07";
   const simulationSeed = getArg("seed") ?? DEFAULT_SIMULATION_SEED;
 
-  const [users, fixtures, triviaRows, adminPasswordHash, userPasswordHashes] = await Promise.all([
+  const [users, fixtures, triviaRows, adminPasswordHash] = await Promise.all([
     readJsonFile<UserFileRow[]>(usersPath),
     readJsonFile<FixtureFileRow[]>(fixturesPath),
     readJsonFile<TriviaFileRow[]>(triviaPath),
     hashPassword(ADMIN_PASSWORD),
-    (async () => {
-      const parsedUsers = await readJsonFile<UserFileRow[]>(usersPath);
-      return Promise.all(parsedUsers.map((user) => hashPassword(user.password)));
-    })(),
   ]);
 
   if (users.length === 0) throw new Error("User file is empty");
   if (fixtures.length === 0) throw new Error("Fixture file is empty");
   if (triviaRows.length === 0) throw new Error("Trivia file is empty");
+  if (users.length !== 16) throw new Error(`Expected 16 players, found ${users.length}`);
+
+  const normalizedUsers = users.map((user) => ({
+    name: user.name.trim(),
+    password: user.password?.trim() || null,
+    simulated: user.simulated ?? !user.password,
+  }));
+
+  for (const user of normalizedUsers) {
+    if (!user.name) throw new Error("Every player needs a name");
+    if (!user.simulated && !user.password) {
+      throw new Error(`Real player ${user.name} requires a password`);
+    }
+    if (user.simulated && user.password) {
+      throw new Error(`Simulated player ${user.name} should not have a password`);
+    }
+  }
+
+  const userPasswordHashes = await Promise.all(
+    normalizedUsers.map(async (user) => (user.password ? hashPassword(user.password) : null)),
+  );
 
   const kickoffs = buildCompressedKickoffs(fixtures, startIso, intervalMinutes, stageGapMinutes);
-  const inviteCode = `DEV-${randomBytes(8).toString("hex")}`;
   const triviaQuestions = triviaRows.map((row, index) => ({
     triviaSet,
     publishOn: shiftTriviaDateKey(triviaStartOn, index),
@@ -192,30 +246,42 @@ async function main() {
       },
     });
 
-    for (const [index, user] of users.entries()) {
+    for (const [index, user] of normalizedUsers.entries()) {
       await tx.user.create({
         data: {
-          name: user.name.trim(),
+          name: user.name,
           role: UserRole.USER,
           passwordHash: userPasswordHashes[index],
         },
       });
     }
 
-    const allUsers = await tx.user.findMany({ select: { id: true } });
+    const allUsers = await tx.user.findMany({ select: { id: true, name: true } });
     await tx.userScore.createMany({
       data: allUsers.map((user) => ({ userId: user.id })),
       skipDuplicates: true,
     });
 
-    await tx.inviteCode.create({
-      data: {
-        tokenHash: sha256Hex(inviteCode),
-        label: "Remote simulation test invite",
-      },
-    });
-
     await tx.triviaQuestion.createMany({ data: triviaQuestions });
+
+    const assignmentUsers = allUsers
+      .filter((user) => user.name !== ADMIN_NAME)
+      .sort((a, b) => a.name.localeCompare(b.name));
+    const shuffledTeams = shuffled(teamRows, `${simulationSeed}:teams`);
+    const teamsPerUser = Math.floor(shuffledTeams.length / assignmentUsers.length);
+    if (teamsPerUser * assignmentUsers.length !== shuffledTeams.length) {
+      throw new Error("Teams cannot be evenly distributed across players");
+    }
+
+    const teamAssignments = assignmentUsers.flatMap((user, userIndex) =>
+      shuffledTeams
+        .slice(userIndex * teamsPerUser, userIndex * teamsPerUser + teamsPerUser)
+        .map((team) => ({
+          userId: user.id,
+          teamId: team.id,
+        })),
+    );
+    await tx.userTeam.createMany({ data: teamAssignments });
 
     const matchesToCreate = fixtures.map((fixture) => {
       const kickoffAt = kickoffs.get(fixture);
@@ -266,10 +332,13 @@ async function main() {
   console.log(`Trivia loaded into ${triviaSet}: ${triviaRows.length}`);
   console.log(`Simulation seed: ${simulationSeed}`);
   console.log(`Admin login: ${ADMIN_NAME} / ${ADMIN_PASSWORD}`);
-  for (const user of users) {
-    console.log(`Test user login: ${user.name} / ${user.password}`);
+  for (const user of normalizedUsers) {
+    if (user.password) {
+      console.log(`Real player login: ${user.name} / ${user.password}`);
+    } else {
+      console.log(`Simulated player: ${user.name}`);
+    }
   }
-  console.log(`Invite code: ${inviteCode}`);
 }
 
 main()
