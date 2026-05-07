@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { SimulationAutoRefresh } from "@/app/components/SimulationAutoRefresh";
 import { TeamHighlightProvider } from "@/app/components/TeamHighlightProvider";
 import { syncSimulatedResultsIfNeeded } from "@/lib/simulated-results";
 import "./globals.css";
@@ -23,12 +24,18 @@ export const metadata: Metadata = {
   description: "Invite-only World Cup 2026 prediction pool — team draw & daily picks.",
 };
 
+export const dynamic = "force-dynamic";
+
 export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   await syncSimulatedResultsIfNeeded();
+  const simulationConfig = await prisma.appConfig.findUnique({
+    where: { id: 1 },
+    select: { simulationEnabled: true },
+  });
   const user = await getCurrentUser();
   const highlightedTeams = user
     ? await prisma.userTeam.findMany({
@@ -45,6 +52,7 @@ export default async function RootLayout({
       className={`${robotoCondensed.variable} ${bitcountGridDouble.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
+        <SimulationAutoRefresh enabled={simulationConfig?.simulationEnabled ?? false} />
         <TeamHighlightProvider
           highlightedTeamIds={highlightedTeams.map((entry) => entry.teamId)}
           highlightedTeamNames={highlightedTeams.map((entry) => entry.team.name)}
